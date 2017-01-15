@@ -70,11 +70,17 @@ var httpsServer = https.createServer(ssl.options, app).listen(app.get('httpsport
 
 //Jason add for node-red on 2017.01.03
 // Create the settings object - see default settings.js file for other options
+var deviceList = JsonFileTools.getJsonFromFile('./public/data/finalList.json');
 var settings = {
     httpAdminRoot:"/red",
     httpNodeRoot: "/api",
     userDir:"./.nodered/",
-    functionGlobalContext: { }    // enables global context
+    functionGlobalContext: {
+    	momentModule:require("moment"),
+    	deviceDbTools:require("./models/deviceDbTools.js"),
+    	devices:deviceList,
+    	debug:false
+    }    // enables global context
 };
 
 // Initialise the runtime with a server and settings
@@ -147,7 +153,7 @@ console.log('settings.db : '+settings.db);
 var isMqttConnection = false;
 var date = moment();
 
-//macList is for unit type = 'd001'
+//macList is for unit type = 'aa00'
 var myUnits,macList = [],finalTimeList = {};
 findUnitsMac();
 
@@ -252,18 +258,6 @@ sock.on('connection',function(client){
 	        } else {
 	        	console.log('Debug : index aa01 -------------------------------------------------------------');
 	            console.log('Debug : find Device success\n:',Devices.length);
-	            if(Devices.length>0){
-					//console.log('Debug : find Device success\n:',Devices[Devices.length-1]);
-
-					var device = Devices[Devices.length-1];
-					var temp = device.info.data2;
-					console.log('Debug : max = '+max,' , min = '+min+ ' , temp = '+temp);
-					/*if(temp>max){
-						blink.setSwitch(true);
-					}if(temp<min){
-						blink.setSwitch(false);
-					}*/
-	            }
 
 				client.emit('index_weather_chart1_data',Devices);
 	        }
@@ -294,7 +288,7 @@ sock.on('connection',function(client){
 				//console.log('Debug new_message_client-> allUnits : '+allUnits);
 				for(var i = 0;i<allUnits.length;i++){
 		  			console.log('Debug update -> check '+ allUnits[i].name +' type : '+ allUnits[i].type);
-		  			if(allUnits[i].type == 'd001'){
+		  			if(allUnits[i].type == 'aa00'){
 		  				units.push(allUnits[i]);
 		  			}
 		  		}
@@ -318,11 +312,11 @@ sock.on('connection',function(client){
 									}
 								}
 								if(device.index == 'aa00'){
-									console.log('Debug new_message_client ->device ('+index+') :'+device.info.data2 );
-									client.emit('new_message_db_findLast',{index:index,macAddr:device.macAddr,data:device.data,time:device.time.date,create:device.created_at,tmp1:device.info.data0,hum1:device.info.data1,vol:device.info.data2});
-								}else if(device.info.data4){
-									console.log('Debug new_message_client ->device ('+index+') :'+device.info.data4 );
-									client.emit('new_message_db_findLast',{index:index,macAddr:device.macAddr,data:device.data,time:device.time.date,create:device.created_at,tmp1:device.info.data0,hum1:device.info.data1,tmp2:device.info.data2,hum2:device.info.data3,vol:device.info.data4});
+									console.log('Debug new_message_client ->device ('+index+') :'+ JSON.stringify(device));
+									//var message = {index:index,macAddr:device.macAddr,time:device.recv_at,tmp1:device.info.temperature,hum1:device.info.humidity,vol:device.info.voltage};
+									var message = {index:index,macAddr:device.macAddr,time:device.time,tmp1:device.info.temperature,hum1:device.info.humidity,vol:device.info.voltage};
+									console.log('Debug new_message_client -> message'+ JSON.stringify(message));
+									client.emit('new_message_db_findLast',message);
 								}
 								console.log('Debug new_message_client ------------------------------------------------------------end' );
 						}
@@ -387,6 +381,7 @@ sock.on('connection',function(client){
 		var macAddress = data['macAddr'];
         var mData = data['data'];
         var mRecv = data['recv'];
+        var mTime = data['time'];
         //updata unit final time
         finalTimeList[macAddress] = Number(moment(mRecv));
         JsonFileTools.saveJsonToFile('./public/data/finalTimeList.json',finalTimeList);
@@ -418,14 +413,14 @@ sock.on('connection',function(client){
 			var mHum1 = arrData[1];
 			var mV = arrData[2];
 		    var mCreate = new Date();
-			var time = moment(mRecv).format("YYYY-MM-DD HH:mm:ss");
+			//var time = moment(mRecv).format("YYYY-MM-DD HH:mm:ss");
 			//console.log('tmp1:'+mTmp1 +' , hum1 : '+mHum1+" ,vol : "+mV);
 			if(mV<350){
 				//client.broadcast.emit('index_low_voltage',{index:index,macAddr:macAddress});
 				finalTimeList[macAddress] = 0;
 				JsonFileTools.saveJsonToFile('./public/data/finalTimeList.json',finalTimeList);
 			}
-			client.broadcast.emit('new_message_receive_mqtt',{index:index,macAddr:macAddress,data:mData,time:time,create:mCreate,tmp1:mTmp1,hum1:mHum1,vol:mV});
+			client.broadcast.emit('new_message_receive_mqtt',{index:index,macAddr:macAddress,data:mData,time:mTime,create:mCreate,tmp1:mTmp1,hum1:mHum1,vol:mV});
 		}else if(flag == 1){
 			var time = Number(moment(mRecv));
 			client.broadcast.emit('index_update_weather_chart1',{time:time,array:arrData});
@@ -500,7 +495,7 @@ function switchBySetting(_max,_min){
 		}else{
 			if(device){
 				console.log('Debug new_message_client ->device  :'+device);
-				var temp = device.info.data2;
+				var temp = device.info.temperature;
 				/*if(temp>_max){
 					blink.setSwitch(true);
 				}if(temp<_min){
@@ -535,9 +530,12 @@ function getType(p) {
     else return 'other';
 }
 
+var count = 0;
+
 function updateAllUnitsStatus(){
 	console.log('time:'+new Date());
 	UnitDbTools.findAllUnits(function(err,units){
+		count = units.length;
   		async.each(units,function(unit,callback){
 			updateStatus(unit,function(){
 				callback();
@@ -553,7 +551,6 @@ function updateStatus(unit,callback){
 	var tasks = ['find_last_device','compare_status'];
 	var last_timestamp = Number(moment().subtract(2,'hours'));
 	var status = 0;
-	finalTimeList = {};
 
 	DeviceDbTools.findLastDeviceByMac(unit.macAddr,function(err,device){
 		if(err){
@@ -562,11 +559,14 @@ function updateStatus(unit,callback){
 		if(device){
 			//console.log('device : '+device);
 			finalTimeList[device.macAddr] = Number(moment(device.recv_at));
+			if(finalTimeList.length === count){
+				JsonFileTools.saveJsonToFile('./public/data/finalTimeList.json',finalTimeList);
+			}
 		}
 	});
 }
 
-//for d001 device (temprature/huminity) status
+//for aa00 device (temprature/huminity) status
 function findUnitsMac(){
 	UnitDbTools.findAllUnits(function(err,units){
 		if(err){
@@ -575,7 +575,7 @@ function findUnitsMac(){
 			if(+units.length>0){
 				for(var i=0;i<units.length;i++){
 					//console.log( "unit :"+units[i] );
-					if(units[i].macAddr && units[i].type == 'd001'){
+					if(units[i].macAddr && units[i].type == 'aa00'){
 						console.log('mac ('+i+'):'+units[i].macAddr);
 						macList.push(units[i].macAddr);
 					}

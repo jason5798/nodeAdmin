@@ -29,6 +29,40 @@ function toGetInfoByData(mac,data){
     return info;
 }
 
+
+exports.saveDeviceInfo = function (mMac,mData,mInfo,mRecv,callback) {
+    var now = moment().toDate();
+    console.log(now + ' Debug : saveDeviceInfo');
+    var momObj = moment(mRecv);
+    var mTime =  momObj.format('YYYY-MM-DD HH:mm:ss');
+    var mIndex = mData.substring(0,4);
+    console.log('toSaveDevice mRecv : '+mRecv);
+    console.log('toSaveDevice mTime : '+mTime);
+
+    var newDevice = new DeviceModel({
+        macAddr    : mMac,
+        index      : mIndex,
+        data       : mData,
+        info       : mInfo,
+        recv_at    : mRecv,
+        time       : mTime
+    });
+
+    console.log('$$$$ DeviceModel : '+JSON.stringify(newDevice));
+
+
+    newDevice.save(function(err){
+        var now = moment().format('YYYY-MM-DD HH:mm:ss');
+        if(err){
+            console.log(now + ' Debug : Device save fail!');
+            return callback(err);
+        }else{
+            console.log(now + ' Debug : Device save success!');
+            return callback(err,"OK");
+        }
+    });
+};
+
 exports.saveDevice = function (macAddress,data,recv,callback) {
     var mRecv = new Date(recv);
     var info = toGetInfoByData(macAddress,data);
@@ -75,7 +109,7 @@ exports.saveDevice = function (macAddress,data,recv,callback) {
             return callback(err);
         }
         console.log(now + ' Debug : Device save success!');
-        return callback(err,info);
+        return callback(err,"OK");
     });
 };
 
@@ -292,29 +326,17 @@ exports.updateDeviceTime = function (unitId,updateTime,calllback) {
     );
 };
 
-exports.updateDeviceData = function (unitId,data,calllback) {
+exports.updateDeviceData = function (unitId,json) {
     console.log('---updateDeviceTime ---------------------------------------');
-    console.log('Debug : updateDeviceTime id='+unitId+" , data ="+data);
-    var arrData =Tools.getDataArray(data);
-    var mTmp1 = arrData[0];
-    var mHum1 = arrData[1];
-    var mTmp2 = arrData[2];
-    var mHum2 = arrData[3];
     var time = moment().format('YYYY-MM-DD HH:mm:ss');
-
     DeviceModel.update({_id : unitId},
-        {temperature1:mTmp1 ,
-            humidity1:mHum1,
-            temperature2:mTmp2,
-            humidity2:mHum2,},
+        json,
         {safe : true, upsert : true},
         (err, rawResponse)=>{
             if (err) {
                 console.log(time+' Debug updateDeviceData : '+ err);
-                return calllback(err);
             } else {
                 console.log(time+' Debug updateDeviceData : success');
-                return calllback(err,'success');
             }
         }
     );

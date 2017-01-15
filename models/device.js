@@ -9,8 +9,7 @@ var deviceSchema = new Schema({
   data: { type: String},
   info: { type: Schema.Types.Mixed},
   recv_at: { type: Date},
-  created_at: { type: Date},
-  time: { type: Schema.Types.Mixed}
+  time: { type: String}
 });
 
 // the schema is useless so far

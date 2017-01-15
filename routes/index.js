@@ -7,20 +7,22 @@ var UserDbTools =  require('../models/userDbTools.js');
 
 var settings = require('../settings');
 var moment = require('moment');
-var noWeatherDevice = true;
+var noWeatherDevice = false;
 var finalTimeList = {};
 var hour = 60*60*1000;
 
 function getNewData(obj){
 	var json = obj;
 	var now = moment();
-	/*console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+	console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
 	console.log('obj.macAddr : '+obj.macAddr+' = '+finalTimeList[obj.macAddr]);
-	console.log('result = '+ (now - finalTimeList[obj.macAddr]));*/
+	console.log('result = '+ (now - finalTimeList[obj.macAddr]));
 	if(finalTimeList[obj.macAddr] == 0){
 		obj.status = 1;
-	}else if( (now - finalTimeList[obj.macAddr])/hour > 1 ){
+	}else if( (now - finalTimeList[obj.macAddr])/hour > 72 ){
 		obj.status = 2;
+	}else{
+		obj.status = 0;
 	}
 
 	return obj;
@@ -319,8 +321,9 @@ module.exports = function(app){
   		var newUnits = [];
   		var units = req.session.units;
   		for(var i = 0;i<units.length;i++){
-  			console.log('Debug update -> check '+ units[i].name +' type : '+ units[i].type);
-  			if(units[i].type == 'd001'){
+  			//console.log('Debug update -> check '+ units[i].name +' type : '+ units[i].type);
+  			console.log('Debug update -> check '+ JSON.stringify(units[i]));
+  			if(units[i].type == 'aa00'){
   				newUnits.push(units[i]);
   			}
   		}
@@ -381,32 +384,8 @@ module.exports = function(app){
 				console.log('Debug find device '+find_mac+'-> find '+devices);
 				successMessae = '查詢到'+devices.length+'筆資料';
 				var newDevices = [];
-				if(findType == 'd001'){
+				if(findType == 'aa00' || findType == 'aa03 '){
 					newDevices = devices;
-				}else if(findType == 'd002'){
-					var tag = -1;
-					var arrIndex = -1;
-					for(var i=0;i<devices.length;i++){
-						if (tag != devices[i].tag){
-							tag = devices[i].tag;
-							arrIndex ++;
-						}
-						if( devices[i].index == 'aa03'){
-							newDevices[arrIndex].push([devices[i].info.data0,devices[i].info.data1,devices[i].info.data2]);
-						}else if( devices[i].index == 'aa04'){
-							if(newDevices[arrIndex].length == 0){
-								newDevices[arrIndex].push(['','','']);
-							}
-							newDevices[arrIndex].push([devices[i].info.data0,devices[i].info.data1])
-						}if( devices[i].index == 'aa05'){
-							if(newDevices[arrIndex].length == 0){//loss aa03 & aa04
-								newDevices[arrIndex].push(['','','','','','']);
-							}else if(newDevices[arrIndex].length == 3){//loss aa04
-								newDevices[arrIndex].push(['','','',]);
-							}
-							newDevices[arrIndex].push([devices[i].info.data0,devices[i].info.data1,devices[i].info.data2]);
-						}
-					}
 				}
 
 				res.render('find', { title: '資料查詢',
