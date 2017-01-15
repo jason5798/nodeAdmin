@@ -71,6 +71,11 @@ var httpsServer = https.createServer(ssl.options, app).listen(app.get('httpsport
 //Jason add for node-red on 2017.01.03
 // Create the settings object - see default settings.js file for other options
 var deviceList = JsonFileTools.getJsonFromFile('./public/data/finalList.json');
+var debug = false;
+if(debug){
+	console.log('#########  Debug Mode #############');
+}
+
 var settings = {
     httpAdminRoot:"/red",
     httpNodeRoot: "/api",
@@ -79,7 +84,7 @@ var settings = {
     	momentModule:require("moment"),
     	deviceDbTools:require("./models/deviceDbTools.js"),
     	devices:deviceList,
-    	debug:false
+    	debug:debug
     }    // enables global context
 };
 
@@ -178,32 +183,6 @@ findUnitsMac();
 
 sock.on('connection',function(client){
 
-	//for register ----------------------------------------------------------------------------
-	/*client.on('reg_client',function(data){
-		console.log('Debug reg_client ------------------------------------------------------------start' );
-		console.log('Debug reg_client :' + data );
-	});
-
-	client.on('reg_client_check',function(data){
-		console.log('Debug reg_client_check ----------------------------------------------------start' );
-		console.log('Debug reg_client_check:'+data.account + ' , password:'+ data.password);
-
-		UserDbTools.findUserByName (data.account,function(err,user){
-			if(err){
-				console.log('Debug reg_client_check -> findUserByName :' + err);
-				return;
-			}
-			console.log('Debug reg_client_check -> find user :\n'+user);
-			if (user) {
-				client.emit('reg_client_db_result',{result:'fail'});
-
-			}else{
-				client.emit('reg_client_db_result',{result:'ok'});
-			}
-		});
-
-	});*/
-
 	//for index timeoue ceck--------------------------------------------------------------------
 	client.on('index_client',function(data){
 		console.log('Debug index ------------------------------------------------------------start' );
@@ -242,13 +221,13 @@ sock.on('connection',function(client){
                 }
         };
 
-        var json2 = {macAddr:'040004b8',
+        /*var json2 = {macAddr:'040004b8',
 				index:'aa02',
                 recv_at:{
                     $gte:from,
                     $lt:now
                 }
-        };
+        };*/
 
 
 	    DeviceDbTools.findDevices(json1,(err, Devices) => {
@@ -256,14 +235,15 @@ sock.on('connection',function(client){
 	            console.log('Debug : findDevice err:', err);
 	            return calllback(err);
 	        } else {
-	        	console.log('Debug : index aa01 -------------------------------------------------------------');
-	            console.log('Debug : find Device success\n:',Devices.length);
-
+	        	if(debug){
+	        		console.log('Debug : index aa01 -------------------------------------------------------------');
+	        	}
+	        	console.log('Debug : find Device success\n:',Devices.length);
 				client.emit('index_weather_chart1_data',Devices);
 	        }
 	    });
 
-	    DeviceDbTools.findDevices(json2,(err, Devices) => {
+	    /*DeviceDbTools.findDevices(json2,(err, Devices) => {
 	        if (err) {
 	            console.log('Debug : findDevice err:', err);
 	            return calllback(err);
@@ -272,7 +252,7 @@ sock.on('connection',function(client){
 	            console.log('Debug :findDevice success\n:',Devices.length);
 				client.emit('index_weather_chart2_data',Devices);
 	        }
-	    });
+	    });*/
 		//client.emit('index_weather_data',{pressue:mPressure,height:mHeight,tempretaure:mTempretaure,humidity:mHumidity,light:mLight,uv:mUv,rain:mRain});
 	});
 
@@ -281,13 +261,15 @@ sock.on('connection',function(client){
 
 		UnitDbTools.findAllUnits(function(err,allUnits){
 			if(err){
-				console.log('Debug ');
+				console.log('Debug findAllUnits err:'+err);
 			}else{
 				myUnits = units;
 				var units = [];
 				//console.log('Debug new_message_client-> allUnits : '+allUnits);
 				for(var i = 0;i<allUnits.length;i++){
-		  			console.log('Debug update -> check '+ allUnits[i].name +' type : '+ allUnits[i].type);
+					if(debug){
+		  				console.log('Debug update -> check '+ allUnits[i].name +' type : '+ allUnits[i].type);
+		  			}
 		  			if(allUnits[i].type == 'aa00'){
 		  				units.push(allUnits[i]);
 		  			}
@@ -296,7 +278,9 @@ sock.on('connection',function(client){
 				console.log('Debug new_message_client ------------------------------------------------------------start' );
 				for(var i=0;i<units.length;i++){
 					var unit = units[i];
-					console.log('Debug new_message_client->unit : ('+i+') \n' + unit.macAddr );
+					if(debug){
+						console.log('Debug new_message_client->unit : ('+i+') \n' + unit.macAddr );
+					}
 					var unitMac = unit.macAddr;
 
 					DeviceDbTools.findLastDeviceByMac(unit.macAddr,function(err,device){
@@ -312,15 +296,15 @@ sock.on('connection',function(client){
 									}
 								}
 								if(device.index == 'aa00'){
-									console.log('Debug new_message_client ->device ('+index+') :'+ JSON.stringify(device));
-									//var message = {index:index,macAddr:device.macAddr,time:device.recv_at,tmp1:device.info.temperature,hum1:device.info.humidity,vol:device.info.voltage};
 									var message = {index:index,macAddr:device.macAddr,time:device.time,tmp1:device.info.temperature,hum1:device.info.humidity,vol:device.info.voltage};
-									console.log('Debug new_message_client -> message'+ JSON.stringify(message));
+									if(debug){
+										//console.log('Debug new_message_client ->device ('+index+') :'+ JSON.stringify(device));
+										console.log('Debug new_message_client -> message'+ JSON.stringify(message));
+									}
 									client.emit('new_message_db_findLast',message);
 								}
 								console.log('Debug new_message_client ------------------------------------------------------------end' );
-						}
-
+							}
 						}
 					});
 				}
@@ -424,10 +408,10 @@ sock.on('connection',function(client){
 		}else if(flag == 1){
 			var time = Number(moment(mRecv));
 			client.broadcast.emit('index_update_weather_chart1',{time:time,array:arrData});
-		}else{
+		}/*else{
 			var time = Number(moment(mRecv));
 			client.broadcast.emit('index_update_weather_chart2',{time:time,array:arrData});
-		}
+		}*/
 	});
 
 	client.on('setting_client',function(data){

@@ -16,7 +16,7 @@
                 <select id="mac" name="mac">
                     <% if(units) { %>
                         <% for(var i=0;i<units.length;i++){ %>
-                            <% if(units[i].type == 'd001')  { %>
+                            <% if(units[i].type == 'aa00')  { %>
                             <option value = "<%= units[i].macAddr %>" >
                                 <%= units[i].name %>
                             </option>
@@ -175,8 +175,8 @@
             if(i > (data.length-1) ){
                 break;
             }else{
-                tempList.push([new Date(data[i].recv_at).getTime(),data[i].info.data0]);
-                humList.push([new Date(data[i].recv_at).getTime(),data[i].info.data1]);
+                tempList.push([new Date(data[i].recv_at).getTime(),data[i].info.temperature]);
+                humList.push([new Date(data[i].recv_at).getTime(),data[i].info.humidity]);
             }
         }
         tatalTime = Math.ceil((tempList[tempList.length-1][0]-tempList[0][0])/(1000*60*60))+1;

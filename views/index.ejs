@@ -336,14 +336,13 @@
 			alert('index :'+ data.info.data2);
 			alert('index :'+ data.info.data3);
 			alert('index :'+ data.info.data4);*/
-			$("#pressure").text(data.info.data0 + 'mb');
-			$("#temperature").text(data.info.data2 + '℃');
-			$("#humidity").text(data.info.data3 + '%');
-			$("#light").text(data.info.data4 + 'lux');
-		}else{
+			$("#pressure").text(data.info.pressure + 'mb');
+			$("#temperature").text(data.info.temperature + '℃');
+			$("#humidity").text(data.info.humidity + '%');
+			$("#light").text(data.info.light + 'lux');
 			//alert('index :'+ data.info.data0);
-			$("#uv").text(data.info.data0);
-			$("#rain").text(data.info.data1);
+			$("#uv").text(data.info.uv);
+			$("#rain").text(1023-data.info.rain);
 		}
 
 	});
@@ -352,17 +351,21 @@
     	tData = [];
     	hData = [];
     	lData = [];
-
+    	uData = [];
+    	rData = [];
 		//alert(data.length);
 		for(var i=0 ; i<data.length; i++){
 			var date = (new Date(data[i].recv_at));
 			var time = date.getTime(); // current time
 			//alert(date+ " : " +data[i].info.data0 + ' : ' + data[i].info.data2 + typeof(data[i].info.data2));
-			pData.push([time,data[i].info.data0]);
-			tData.push([time,data[i].info.data2]);
-			hData.push([time,data[i].info.data3]);
-			lData.push([time,data[i].info.data4]);
+			pData.push([time,data[i].info.pressure]);
+			tData.push([time,data[i].info.temperature]);
+			hData.push([time,data[i].info.humidity]);
+			lData.push([time,data[i].info.light]);
+			uData.push([time,data[i].info.uv]);
+			rData.push([time,(1023-data[i].info.rain)]);
 		}
+		console.log('pData :'+JSON.stringify(pData));
 		if(pData.length==0){
 			pData.push([noDataTime,1000]);
 		}
@@ -375,16 +378,23 @@
 		if(lData.length==0){
 			lData.push([noDataTime,288]);
 		}
+		if(uData.length==0){
+			uData.push([noDataTime,2]);
+		}
+		if(rData.length==0){
+			rData.push([noDataTime,1]);
+		}
 		options.axes.xaxis.min = min;
         options.axes.xaxis.max = max;
 		plot1 = $.jqplot ('pChart', [pData],options);
 		plot2 = $.jqplot ('tChart', [tData],options);
 		plot3 = $.jqplot ('hChart', [hData],options);
 		plot4 = $.jqplot ('lChart', [lData],options);
-
+		plot5 = $.jqplot ('uChart', [uData],options);
+		plot6 = $.jqplot ('rChart', [rData],options);
 	});
 
-	socket.on('index_weather_chart2_data',function(data){
+	/*socket.on('index_weather_chart2_data',function(data){
 		uData = [];
     	rData = [];
 		//alert('index_weather_chart2_data');
@@ -403,7 +413,7 @@
 		}
 		plot5 = $.jqplot ('uChart', [uData],options);
 		plot6 = $.jqplot ('rChart', [rData],options);
-	});
+	});*/
 
 	socket.on('index_update_weather_chart1',function(data){
 		//alert('index_update_weather_chart1'+data.array[0]);
@@ -415,15 +425,19 @@
 		tData.push([data.time,data.array[2]]);
 		hData.push([data.time,data.array[3]]);
 		lData.push([data.time,data.array[4]]);
+		uData.push([data.time,data.array[5]]);
+		rData.push([data.time,(1023-data.array[6])]);
 		if(pData.length>100){
 			pData.shift();
 			tData.shift();
 			hData.shift();
 			lData.shift();
+			uData.shift();
+			rData.shift();
 		}
 	});
 
-	socket.on('index_update_weather_chart2',function(data){
+	/*socket.on('index_update_weather_chart2',function(data){
 		//alert('index_update_weather_chart2'+data.array[0]);
 		$("#uv").text(data.array[0]);
 		$("#rain").text(data.array[1]);
@@ -433,7 +447,7 @@
 			uData.shift();
 			rData.shift();
 		}
-	});
+	});*/
 
     //Jason add of on 2016.10.31 for update unit status
 	/*socket.on('index_unit_time',function(data){
