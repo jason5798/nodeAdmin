@@ -1,4 +1,5 @@
-﻿var express = require('express');
+﻿var debug = falses;
+var express = require('express');
 var session = require('express-session');
 var path = require('path');
 var favicon = require('serve-favicon');
@@ -71,7 +72,7 @@ var httpsServer = https.createServer(ssl.options, app).listen(app.get('httpsport
 //Jason add for node-red on 2017.01.03
 // Create the settings object - see default settings.js file for other options
 var deviceList = JsonFileTools.getJsonFromFile('./public/data/finalList.json');
-var debug = false;
+
 if(debug){
 	console.log('#########  Debug Mode #############');
 }
@@ -351,67 +352,6 @@ sock.on('connection',function(client){
 			client.emit('chart_client_db_result',devices);
 		});
 
-	});
-
-	//for new message ----------------------------------------------------------------------------
-	client.on('giot_client',function(data){
-		//console.log('Debug giot_client ------------------------------------------------------------start' );
-		console.log(moment().format('YYYY-MM_DD HH:mm:ss')+' Debug giot_client :' + data );
-	});
-
-
-	client.on('giot_client_message',function(data){
-		console.log(moment().format('YYYY-MM_DD HH:mm:ss')+' Debug giot client message :'+data );
-		var macAddress = data['macAddr'];
-        var mData = data['data'];
-        var mRecv = data['recv'];
-        var mTime = data['time'];
-        //updata unit final time
-        finalTimeList[macAddress] = Number(moment(mRecv));
-        JsonFileTools.saveJsonToFile('./public/data/finalTimeList.json',finalTimeList);
-        //console.log('Debug giot client message -> macAddress : '+macAddress);
-        //console.log('Debug giot client message -> mData : '+mData);
-        //console.log('Debug giot client message -> mRecv : '+mRecv);
-        var mCreate = new Date();
-
-		//Jason modiy on 2016.07.21
-		var index = 0;
-		for(var k = 0; k<macList.length; k++){
-			if(macAddress == macList[k]){
-				index  = k;
-			}
-		}
-		//mData = '00fk03a900fb01d701e7';//Jason add for test
-		//Jason test
-		var flag = 0;
-		var device_type = mData.substring(0,4);
-		if(device_type == 'aa01'){
-			flag = 1;
-		}else if(device_type == 'aa02'){
-			flag = 2;
-		}
-
-		var arrData = tools.getDataArray( flag,mData);
-		if(flag == 0){
-			var mTmp1 = arrData[0];
-			var mHum1 = arrData[1];
-			var mV = arrData[2];
-		    var mCreate = new Date();
-			//var time = moment(mRecv).format("YYYY-MM-DD HH:mm:ss");
-			//console.log('tmp1:'+mTmp1 +' , hum1 : '+mHum1+" ,vol : "+mV);
-			if(mV<350){
-				//client.broadcast.emit('index_low_voltage',{index:index,macAddr:macAddress});
-				finalTimeList[macAddress] = 0;
-				JsonFileTools.saveJsonToFile('./public/data/finalTimeList.json',finalTimeList);
-			}
-			client.broadcast.emit('new_message_receive_mqtt',{index:index,macAddr:macAddress,data:mData,time:mTime,create:mCreate,tmp1:mTmp1,hum1:mHum1,vol:mV});
-		}else if(flag == 1){
-			var time = Number(moment(mRecv));
-			client.broadcast.emit('index_update_weather_chart1',{time:time,array:arrData});
-		}/*else{
-			var time = Number(moment(mRecv));
-			client.broadcast.emit('index_update_weather_chart2',{time:time,array:arrData});
-		}*/
 	});
 
 	client.on('setting_client',function(data){

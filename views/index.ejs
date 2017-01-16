@@ -1,28 +1,83 @@
 <%- include page/header_datepicker %>
 <!--<meta http-equiv="refresh" content="3600">-->
 	<div class="row">
-		<% if (noWeatherDevice==false) { %>
-		<div class="col-md-8">
-            <div class="form-group">
-            	<div class="col-lg-2 col-md-2">
-            		 <label>選擇時間</label>
-            	</div>
-            	<div class="col-lg-2 col-md-2">
-            		<select id="time_option" name="time_option">
-	                     <option value="0">一小時</option>
-	    　               <option value="1">半小時</option>
-	    　               <option value="2">十分鐘</option>
-	    　               <option value="3">5分鐘</option>
-	                </select>
-				</div>
-				<div class="col-lg-2 col-md-2">
-            		 <button>更新</button>
-            	</div>
-            </div> <!-- form-group -->
-        </div> <!-- col-md-8 -->
-        <% } %>
-
 		<div class="col-md-8 column">
+			<div class="col-md-12 column">
+				<form method = "post" id="unitList" name="unitList">
+					<table width="100%" border="1">
+
+							<tr  height="80" align="center" bgcolor="#428bca">
+
+								<td>
+									<div class="fa fa-3x" style="color:white;">裝置</div>
+								</td>
+
+								<td>
+									<div class="fa fa-3x" style="color:white;">狀態</div>
+								</td>
+
+							</tr>
+
+
+						<% if (units) { %>
+							<% for(var i = 0;i<units.length;i++) { %>
+								<!--<tr align="center" bgcolor="#E3E3E3">-->
+								<tr height="80" align="center">
+									<td align="center">
+										<div  class="col-md-3">
+											<span class="pull-right">
+					                        	<img src="/images/icon_detecter.png" width="50" height="50">
+					                        </span>
+
+										</div>
+
+										<div class="col-md-9 fa fa-3x">
+											<span class="pull-left">
+					                        	<%= units[i].name %>
+					                        </span>
+
+										</div>
+
+									</td>
+									<td  align="center">
+										<% if(units[i].status == 0){ %>
+										   <img src="/images/btn_normal.png" width="80" height="40" name="status">
+										<% }else if(units[i].status == 1){ %>
+											<img src="/images/btn_alarm.png" width="80" height="40" name="status">
+										<% }else if(units[i].status == 2){ %>
+											<img src="/images/btn_loss.png" width="80" height="40" name="status">
+										<% } %>
+									</td>
+								</tr>
+							<% } %>
+						<% } %>
+
+					</table>
+				</form>
+			</div> <!-- col-md-12 column-->
+
+
+		    <% if (noWeatherDevice==false) { %>
+				<div class="col-md-12">
+					<br>
+		            <div class="form-group">
+		            	<div class="col-lg-2 col-md-2">
+		            		 <label>選擇時間</label>
+		            	</div>
+		            	<div class="col-lg-2 col-md-2">
+		            		<select id="time_option" name="time_option">
+			                     <option value="0">一小時</option>
+			    　               <option value="1">半小時</option>
+			    　               <option value="2">十分鐘</option>
+			    　               <option value="3">5分鐘</option>
+			                </select>
+						</div>
+						<div class="col-lg-2 col-md-2">
+		            		 <button>更新</button>
+		            	</div>
+		            </div> <!-- form-group -->
+		        </div> <!-- col-md-12 -->
+		    <% } %>
 			<% if (noWeatherDevice==false) { %>
 			<div class="col-lg-6 col-md-6">
                 <div class="panel panel-primary">
@@ -144,59 +199,7 @@
             </div>
             <% } %>
 
-			<div class="col-md-12 column">
-				<form method = "post" id="unitList" name="unitList">
-					<table width="100%" border="1">
 
-							<tr  height="80" align="center" bgcolor="#428bca">
-
-								<td>
-									<div class="fa fa-3x" style="color:white;">裝置</div>
-								</td>
-
-								<td>
-									<div class="fa fa-3x" style="color:white;">狀態</div>
-								</td>
-
-							</tr>
-
-
-						<% if (units) { %>
-							<% for(var i = 0;i<units.length;i++) { %>
-								<!--<tr align="center" bgcolor="#E3E3E3">-->
-								<tr height="80" align="center">
-									<td align="center">
-										<div  class="col-md-3">
-											<span class="pull-right">
-					                        	<img src="/images/icon_detecter.png" width="50" height="50">
-					                        </span>
-
-										</div>
-
-										<div class="col-md-9 fa fa-3x">
-											<span class="pull-left">
-					                        	<%= units[i].name %>
-					                        </span>
-
-										</div>
-
-									</td>
-									<td  align="center">
-										<% if(units[i].status == 0){ %>
-										   <img src="/images/btn_normal.png" width="80" height="40" name="status">
-										<% }else if(units[i].status == 1){ %>
-											<img src="/images/btn_alarm.png" width="80" height="40" name="status">
-										<% }else if(units[i].status == 2){ %>
-											<img src="/images/btn_loss.png" width="80" height="40" name="status">
-										<% } %>
-									</td>
-								</tr>
-							<% } %>
-						<% } %>
-
-					</table>
-				</form>
-			</div> <!-- col-md-12 column-->
 		</div> <!-- col-md-8 column-->
 		<div class="col-md-4 column col-centered">
 			<div class="col-md-12">
@@ -312,11 +315,52 @@
 		doUpdateOne();
 	});
 
+    if(location.protocol=="https:"){
+		var wsUri="wss://"+window.location.hostname+":3000/api/ws/index";
+	} else {
+		var wsUri="ws://"+window.location.hostname+":3000/api/ws/index";
+	}
+	console.log('wsUri : '+wsUri);
+	var ws=null;
 
-	var callbackFunction = function(data) {
-	    var wind = data.query.results.channel.wind;
-	    //alert(wind.chill);
-	};
+	function wsConn() {
+		ws = new WebSocket(wsUri);
+		ws.onmessage = function(m) {
+			//console.log('< from-node-red:',m.data);
+			if (typeof(m.data) === "string" && m. data !== null){
+				var msg =JSON.parse(m.data);
+				console.log("from-node-red : id:"+msg.id);
+				if(msg.id === 'init_get_data'){
+					console.log("init_get_data : v="+msg.v);
+				}else if(msg.id === 'init_update_data'){
+					console.log("init_update_data : type="+typeof(msg.v)+' , v='+msg.v);
+					var obj = JSON.parse(msg.v);
+					updateNewData(obj);
+				}
+			}
+		}
+		ws.onopen = function() {
+
+			connected = true;
+			var obj = {"id":"init","v":'init'};
+			var getRequest = JSON.stringify(obj);
+			console.log("getRequest type : "+ typeof(getRequest)+" : "+getRequest);
+			console.log("ws.onopen : "+ getRequest);
+			ws.send(getRequest);			// Request ui status from NR
+			console.log(getRequest);
+
+		}
+		ws.onclose   = function()  {
+			console.log('Node-RED connection closed: '+new Date().toUTCString());
+			connected = false;
+			ws = null;
+		}
+		ws.onerror  = function(){
+			console.log("connection error");
+		}
+	}
+    wsConn();
+
 	var socket = io.connect();
 	socket.on('connect',function(){
         socket.emit('index_client','hello,index_client socket cient is ready');
@@ -415,18 +459,22 @@
 		plot6 = $.jqplot ('rChart', [rData],options);
 	});*/
 
-	socket.on('index_update_weather_chart1',function(data){
-		//alert('index_update_weather_chart1'+data.array[0]);
-		$("#pressure").text(data.array[0] + 'mb');
-		$("#temperature").text(data.array[2] + '℃');
-		$("#humidity").text(data.array[3] + '%');
-		$("#light").text(data.array[4] + 'lux');
-		pData.push([data.time,data.array[0]]);
-		tData.push([data.time,data.array[2]]);
-		hData.push([data.time,data.array[3]]);
-		lData.push([data.time,data.array[4]]);
-		uData.push([data.time,data.array[5]]);
-		rData.push([data.time,(1023-data.array[6])]);
+	function updateNewData(data){
+		//alert('updateNewData'+JSON.stringify(data));
+		$("#pressure").text(data.info.pressure + 'mb');
+		$("#temperature").text(data.info.temperature + '℃');
+		$("#humidity").text(data.info.humidity + '%');
+		$("#light").text(data.info.light+ 'lux');
+		$("#uv").text(data.info.uv + '%');
+		$("#rain").text( (1023-data.info.rain) + 'lux');
+		var date = (new Date(data.recv));
+		var time = date.getTime();
+		pData.push([time,data.info.pressure]);
+		tData.push([time,data.info.temperature]);
+		hData.push([time,data.info.humidity]);
+		lData.push([time,data.info.light]);
+		uData.push([time,data.info.uv]);
+		rData.push([time,(1023-data.info.rain)]);
 		if(pData.length>100){
 			pData.shift();
 			tData.shift();
@@ -435,49 +483,8 @@
 			uData.shift();
 			rData.shift();
 		}
-	});
+	}
 
-	/*socket.on('index_update_weather_chart2',function(data){
-		//alert('index_update_weather_chart2'+data.array[0]);
-		$("#uv").text(data.array[0]);
-		$("#rain").text(data.array[1]);
-		uData.push([data.time,data.array[0]]);
-		rData.push([data.time,data.array[1]]);
-		if(uData.length>100){
-			uData.shift();
-			rData.shift();
-		}
-	});*/
-
-    //Jason add of on 2016.10.31 for update unit status
-	/*socket.on('index_unit_time',function(data){
-		var now = (new Date()).getTime();
-		//alert('now : '+typeof(now));
-		var index = 0;
-		for(var k in data.list) {
-		  //alert(k+ ' : ' +data.list[k]);
-
-		  if(now - data.list[k] < 1000*60*60){
-		  	//alert('it is over time');
-		  	$('[name=status]').eq(index).attr("src","/images/btn_normal.png");
-		  }else{
-		  	//alert('it is not over time');
-		  	$('[name=status]').eq(index).attr("src","/images/btn_loss.png");
-		  }
-		  index ++;
-		}
-
-	});
-
-	socket.on('index_low_voltage',function(data){
-		//alert(data.index + data.macAddr);
-		$('[name=status]').eq(data.index).attr("src","/images/btn_alarm.png");
-		var str = "電壓過低 : ";
-		str = str.concat(data.macAddr);
-		//alert("waring message : "+str);
-		document.getElementById('warning_message').innerText = str;
-		document.getElementById('warning_message').style.color = "red";
-	});*/
 
 	function chartUpdate(myplot,myData,myChart) {
     	max = (new Date()).getTime();
@@ -541,5 +548,5 @@
     }
 </script>
 <script type="text/javascript" src="http://oap.accuweather.com/launch.js"></script>
-<script src="https://query.yahooapis.com/v1/public/yql?q= select * from weather.forecast where woeid in (select woeid from geo.places(1) where text='Hualien, tw') and u='c'&format=json&callback=callbackFunction"></script>
+
 <%- include page/footer %>
