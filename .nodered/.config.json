@@ -396,7 +396,7 @@
   },
   "node-red-node-serialport": {
    "name": "node-red-node-serialport",
-   "version": "0.4.1",
+   "version": "0.4.2",
    "local": false,
    "nodes": {
     "serialport": {
