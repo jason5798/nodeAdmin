@@ -70,6 +70,12 @@
 			<li>
 		<% } %>
 			<a href="/"><span class="glyphicon glyphicon-dashboard"></span> 首頁</a></li>
+		<% if(title ==='微型氣象站'){ %>
+			<li class="active">
+		<% }else{ %>
+			<li>
+		<% } %>
+			<a href="/weather"><span class="glyphicon glyphicon-tint"></span> 微型氣象站</a></li>
 		<% if(title ==='最新訊息'){ %>
 			<li class="active">
 		<% }else{ %>

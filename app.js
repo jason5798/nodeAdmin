@@ -156,106 +156,13 @@ updateAllUnitsStatus();
 console.log('settings.cookieSecret : '+settings.cookieSecret);
 console.log('settings.db : '+settings.db);
 
-var isMqttConnection = false;
 var date = moment();
 
 //macList is for unit type = 'aa00'
 var myUnits,macList = [],finalTimeList = {};
 findUnitsMac();
 
-/*GIotClient.on('connect', function()  {
-	if(isMqttConnection == false){
-		console.log('Debug appjs -> Connect to mqtt topic:'+settings.gIoTopic);
-  		GIotClient.subscribe(settings.gIoTopic,{qos:2});
-		isMqttConnection = true;
-		date = date.add(1,'minutes');
-
-	}else{
-		var testDate = moment();
-		//console.log('Debug appjs -> testDate.valueOf():'+testDate.valueOf() + ", type:"+typeof(testDate.valueOf()));
-		//console.log('Debug appjs -> date.valueOf():'+date.valueOf() + ", type:"+typeof(date.valueOf()));
-		if(testDate.valueOf()>date.valueOf()){
-			date = date.add(1,'minutes');//Update date
-			console.log('Debug appjs -> Connect to mqtt topic:'+settings.gIoTopic);
-		}
-	}
-});*/
-
-
 sock.on('connection',function(client){
-
-	//for index timeoue ceck--------------------------------------------------------------------
-	client.on('index_client',function(data){
-		console.log('Debug index ------------------------------------------------------------start' );
-		console.log('Debug index :' + data );
-		//update unit status
-		client.emit('index_unit_time',{list:finalTimeList});
-
-		DeviceDbTools.findLastDevice({index:'aa01'},function(err,device){
-			if(err){
-				return callback(unit.status);
-			}
-			//console.log('Debug index_client aa02 -> '+device);
-			if(device){
-				client.emit('index_weather_data',device);
-			}
-
-		});
-		DeviceDbTools.findLastDevice({index:'aa02'},function(err,device){
-			if(err){
-				return callback(unit.status);
-			}
-			//console.log('Debug index_client aa02 -> '+device);
-			if(device){
-				client.emit('index_weather_data',device);
-			}
-		});
-
-		var now = moment();
-		var from = moment().subtract(2, 'hours');
-
-		var json1 = {macAddr:'040004b8',
-				index:'aa01',
-                recv_at:{
-                    $gte:from,
-                    $lt:now
-                }
-        };
-
-        /*var json2 = {macAddr:'040004b8',
-				index:'aa02',
-                recv_at:{
-                    $gte:from,
-                    $lt:now
-                }
-        };*/
-
-
-	    DeviceDbTools.findDevices(json1,(err, Devices) => {
-	        if (err) {
-	            console.log('Debug : findDevice err:', err);
-	            return calllback(err);
-	        } else {
-	        	if(debug){
-	        		console.log('Debug : index aa01 -------------------------------------------------------------');
-	        	}
-	        	console.log('Debug : find Device success\n:',Devices.length);
-				client.emit('index_weather_chart1_data',Devices);
-	        }
-	    });
-
-	    /*DeviceDbTools.findDevices(json2,(err, Devices) => {
-	        if (err) {
-	            console.log('Debug : findDevice err:', err);
-	            return calllback(err);
-	        } else {
-	        	console.log('Debug : index aa02 -------------------------------------------------------------');
-	            console.log('Debug :findDevice success\n:',Devices.length);
-				client.emit('index_weather_chart2_data',Devices);
-	        }
-	    });*/
-		//client.emit('index_weather_data',{pressue:mPressure,height:mHeight,tempretaure:mTempretaure,humidity:mHumidity,light:mLight,uv:mUv,rain:mRain});
-	});
 
 	//for new message ----------------------------------------------------------------------------
 	client.on('new_message_client',function(id, data){

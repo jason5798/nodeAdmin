@@ -1,28 +1,31 @@
+var debug = false;
 var express = require('express');
 var router = express.Router();
 var DeviceDbTools = require('../models/deviceDbTools.js');
 var UnitDbTools = require('../models/unitDbTools.js');
 var JsonFileTools =  require('../models/jsonFileTools.js');
 var UserDbTools =  require('../models/userDbTools.js');
-
 var settings = require('../settings');
 var moment = require('moment');
-var noWeatherDevice = false;
+var noWeatherDevice = true;
 var finalList = {};
 var hour = 60*60*1000;
 
 function getNewData(obj){
 	var device = finalList[obj.macAddr];
-	console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
 	if(device){
-		console.log('obj.macAddr : '+obj.macAddr+'\n'+ JSON.stringify(device));
-		console.log('recv_time : '+device.recv);
 		var now = moment();
 		var recv = moment(device.recv);
-		console.log('now : '+now );
-		console.log('recv : '+recv );
-		console.log('result : '+((now - recv)/hour) );
-		console.log('device.info.volatage : '+device.info.volatage );
+		if(debug){
+			console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+			console.log('obj.macAddr : '+obj.macAddr+'\n'+ JSON.stringify(device));
+			console.log('recv_time : '+device.recv);
+			console.log('now : '+now );
+			console.log('recv : '+recv );
+			console.log('result : '+((now - recv)/hour) );
+			console.log('device.info.volatage : '+device.info.volatage );
+		}
+
 		if(device.info.volatage && device.info.volatage<350){
 			obj.status = 1;
 		}else if( ((now - recv)/hour) > 72){//loss
@@ -43,7 +46,10 @@ function findUnitsAndShowList(req,res,isUpdate){
 		var successMessae,errorMessae;
 		var macTypeMap = {};
         finalList = JsonFileTools.getJsonFromFile('./public/data/finalList.json');
-		console.log( "finalList :"+ JSON.stringify(finalList ));
+		if(debug){
+			console.log( "finalList :"+ JSON.stringify(finalList ));
+		}
+
 		if(err){
 			errorMessae = err;
 		}else{
@@ -288,6 +294,22 @@ module.exports = function(app){
     req.session.user = null;
     req.flash('success', '');
     res.redirect('/login');
+  });
+
+  app.get('/weather', checkLogin);
+  app.get('/weather', function (req, res) {
+
+		console.log('Debug weather get -> render to weather.ejs');
+		var fullUrl = req.protocol + '://' + req.get('host') + '/api/ui/#/0';
+		console.log('Debug weather fullUrl :'+fullUrl);
+		res.render('weather', { title: '微型氣象站',
+			units:req.session.units,
+			user:req.session.user,
+			success: null,
+			error: null,
+			weatherUrl: fullUrl
+		});
+
   });
 
   app.get('/chart', checkLogin);
