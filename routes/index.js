@@ -8,22 +8,32 @@ var UserDbTools =  require('../models/userDbTools.js');
 var settings = require('../settings');
 var moment = require('moment');
 var noWeatherDevice = false;
-var finalTimeList = {};
+var finalList = {};
 var hour = 60*60*1000;
 
 function getNewData(obj){
-	var json = obj;
-	var now = moment();
+	var device = finalList[obj.macAddr];
 	console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
-	console.log('obj.macAddr : '+obj.macAddr+' = '+finalTimeList[obj.macAddr]);
-	console.log('result = '+ (now - finalTimeList[obj.macAddr]));
-	if(finalTimeList[obj.macAddr] == 0){
-		obj.status = 1;
-	}else if( (now - finalTimeList[obj.macAddr])/hour > 72 ){
-		obj.status = 2;
+	if(device){
+		console.log('obj.macAddr : '+obj.macAddr+'\n'+ JSON.stringify(device));
+		console.log('recv_time : '+device.recv);
+		var now = moment();
+		var recv = moment(device.recv);
+		console.log('now : '+now );
+		console.log('recv : '+recv );
+		console.log('result : '+((now - recv)/hour) );
+		console.log('device.info.volatage : '+device.info.volatage );
+		if(device.info.volatage && device.info.volatage<350){
+			obj.status = 1;
+		}else if( ((now - recv)/hour) > 72){//loss
+			obj.status = 2;
+		}else{
+			obj.status = 0;
+		}
 	}else{
-		obj.status = 0;
+		obj.status = 2;
 	}
+
 
 	return obj;
 }
@@ -32,8 +42,8 @@ function findUnitsAndShowList(req,res,isUpdate){
 	UnitDbTools.findAllUnits(function(err,units){
 		var successMessae,errorMessae;
 		var macTypeMap = {};
-        finalTimeList = JsonFileTools.getJsonFromFile('./public/data/finalTimeList.json');
-		console.log( "finalTimeList :"+ JSON.stringify(finalTimeList ));
+        finalList = JsonFileTools.getJsonFromFile('./public/data/finalList.json');
+		console.log( "finalList :"+ JSON.stringify(finalList ));
 		if(err){
 			errorMessae = err;
 		}else{
@@ -42,7 +52,7 @@ function findUnitsAndShowList(req,res,isUpdate){
 			}
 
 			for(var i=0;i<units.length;i++){
-				console.log( "unit :"+units[i] );
+				//console.log( "unit :"+units[i] );
 				units[i] = getNewData(units[i]);
 			}
 			//Jason add for save mac array on 2016.08.18

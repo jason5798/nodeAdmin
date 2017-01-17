@@ -1,4 +1,4 @@
-﻿var debug = falses;
+﻿var debug = false;
 var express = require('express');
 var session = require('express-session');
 var path = require('path');
