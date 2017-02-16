@@ -4,8 +4,11 @@
    <!--<form method="post">-->
         <div class="col-md-12">
             <div class="form-group">
-                <label>日期</label>
-                <input id="datepicker1" name="datepicker1" type="text" value="<%= mdate %>"/>
+              <label>日期</label>
+                <!--<input id="datepicker1" name="datepicker1" type="text" value="<%= mdate %>"/>-->
+              <label>Start Date</label>
+              <input type="text" id="datepicker1" name="datepicker1" size="10" value="<%= mdate %>" readonly>
+              <input type="button" value="..." id="BTN" name="BTN">
             </div> <!-- form-group -->
         </div> <!-- col-md-12 -->
 
@@ -98,7 +101,17 @@
        buttonImage: 'images/calendar.png'
     };
     //$('#datepicker1').datepicker({dateFormat: 'yy-mm-dd', showOn: 'both',buttonImageOnly: true, buttonImage: 'images/calendar.png'});
-    $('#datepicker1').datepicker(opt);
+    //$('#datepicker1').datepicker(opt);
+    new Calendar({
+        inputField: "datepicker1",
+        dateFormat: "%Y/%m/%d",
+        trigger: "BTN",
+        bottomBar: true,
+        weekNumbers: true,
+        //showTime: 24,
+        showTime    :false,
+        onSelect: function() {this.hide();}
+    });
 
     var socket = io.connect();
     var myData;

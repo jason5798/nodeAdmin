@@ -2,7 +2,7 @@
 var express = require('express');
 var session = require('express-session');
 var path = require('path');
-var favicon = require('serve-favicon');
+//var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
@@ -16,14 +16,7 @@ var http = require('http'),
 var ssl = require('./sslLicense');
 //Jason add for node-red on 2017.01.03
 var RED = require("node-red");
-var yql = require('yql-node').formatAsJSON(); //will return JSON results
-/*var query = 'select * from weather.forecast where woeid in (select woeid from geo.places(1) where text="Hualien, tw") and u="c"';
-//returns JSON
-  yql.execute(query, function(error,response){
-    console.log("yql:");
-    console.log(JSON.stringify(response));
-  });*/
-//require private module ------------------------------------------
+
 var UnitDbTools = require('./models/unitDbTools.js');
 var DeviceDbTools = require('./models/deviceDbTools.js');
 var UserDbTools = require('./models/userDbTools.js');
@@ -33,8 +26,8 @@ var JsonFileTools =  require('./models/jsonFileTools.js');
 var schedule = require('node-schedule');
 var async = require('async');
 //Jason add for test
-//var auto =  require('./models/autoDataSubAndSave.js');
 //var test =  require('./models/testTools.js');
+//test.mqttTest();
 //var blink  =  require('./models/blink.js');
 //app setting-------------------------------------------------------
 var app = express();
@@ -84,6 +77,7 @@ var settings = {
     functionGlobalContext: {
     	momentModule:require("moment"),
     	deviceDbTools:require("./models/deviceDbTools.js"),
+		msgTools:require("./models/msgTools.js"),
     	devices:deviceList,
     	debug:debug
     }    // enables global context

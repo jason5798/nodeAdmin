@@ -28,7 +28,32 @@ function toGetInfoByData(mac,data){
     }
     return info;
 }
+exports.saveDeviceMsg = function (obj,callback) {
+     
+    var now = moment().toDate();
+    console.log(now + ' Debug : saveDeviceMsg');
+    
+    var newDevice = new DeviceModel({
+        macAddr    : obj.mac,
+        index      : obj.type,
+        data       : obj.data,
+        info       : obj.information,
+        recv_at    : obj.recv,
+        time       : obj.date
+    });
 
+    console.log('$$$$ DeviceModel : '+JSON.stringify(newDevice));
+
+    newDevice.save(function(err){
+        if(err){
+            console.log(now + ' Debug : Device save fail!');
+            return callback(err);
+        }else{
+            console.log(now + ' Debug : Device save success!');
+            return callback(err,"OK");
+        }
+    });
+};
 
 exports.saveDeviceInfo = function (mMac,mData,mInfo,mRecv,callback) {
     var now = moment().toDate();
