@@ -435,7 +435,7 @@ module.exports = function(app){
 		}
   });
 
-  app.post('/find', checkLogin);
+  /*app.post('/find', checkLogin);
   app.post('/find', function (req, res) {
 		var	post_mac = req.body.mac;
 		var option = req.body.time_option;
@@ -447,7 +447,7 @@ module.exports = function(app){
 		req.flash('option', option);
 		req.flash('mdate', mdate);
 		return res.redirect('/find');
-  	});
+  	});*/
 
   	app.get('/setting', checkLogin);
 	app.get('/setting', function (req, res) {
