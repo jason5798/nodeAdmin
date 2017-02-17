@@ -119,10 +119,28 @@ exports.getType = function (p) {
     else return 'other';
 }
 
-exports.isEmpty = function isEmpty(obj) {
+exports.isEmpty = function (obj) {
     for(var prop in obj) {
         if(obj.hasOwnProperty(prop))
             return false;
     }
     return true && JSON.stringify(obj) === JSON.stringify({});
+}
+
+exports.getIp = function () {
+    var os = require('os');
+    var interfaces = os.networkInterfaces();
+    var IPv4 = '127.0.0.1';
+    for (var key in interfaces) {
+      var alias = 0;
+	  
+	  for(var i=0;i<interfaces[key].length;i++){
+		  console.log('interfaces['+key+'] ['+ i +']:'+JSON.stringify(interfaces[key][i]));
+		  if ( (interfaces[key][i].family == 'IPv4' && key == 'en0') ||   (interfaces[key][i].family == 'IPv4' && key == '區域連線')) {
+             IPv4 = interfaces[key][i].address;
+          }
+	  }
+      
+    }
+    return IPv4;
 }
